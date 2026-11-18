@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fake News Detector</title>
+<style>
+  body{font-family:system-ui,sans-serif;max-width:720px;margin:40px auto;padding:0 16px;color:#1a1a1a}
+  textarea{width:100%;height:220px;padding:12px;font-size:15px;border:1px solid #bbb;border-radius:8px;box-sizing:border-box}
+  button{margin-top:12px;padding:10px 22px;font-size:15px;border:0;border-radius:8px;background:#2b5fd9;color:#fff;cursor:pointer}
+  button:disabled{opacity:.6}
+  #result{margin-top:20px;padding:16px;border-radius:8px;font-size:18px;display:none}
+  .Real{background:#e3f6e8;color:#14622b}.Fake{background:#fde8e8;color:#8f1d1d}.err{background:#fff3cd;color:#664d03}
+  small{color:#666}
+</style>
+</head>
+<body>
+<h1>Fake News Detector</h1>
+<p>Paste a news article (headline + body) and the model will classify it.</p>
+<textarea id="text" placeholder="Paste the article here..."></textarea>
+<button id="btn">Check article</button>
+<div id="result"></div>
+<p><small>This is a statistical model trained on one dataset of US political news. Treat it as a demo, not a fact-checker.</small></p>
+<script>
+const btn=document.getElementById('btn'),out=document.getElementById('result');
+btn.onclick=async()=>{
+  btn.disabled=true;out.style.display='none';
+  try{
+    const r=await fetch('/predict',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({text:document.getElementById('text').value})});
+    const d=await r.json();
+    out.style.display='block';
+    if(!r.ok){out.className='err';out.textContent=d.error||'Something went wrong.';}
+    else{out.className=d.label;out.textContent=d.label+' news ('+d.confidence+'% confidence)';}
+  }catch(e){out.style.display='block';out.className='err';out.textContent='Could not reach the server.';}
+  btn.disabled=false;
+};
+</script>
+</body>
+</html>
